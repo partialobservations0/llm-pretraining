@@ -11,7 +11,7 @@ def download_url(url, filepath):
     urllib.request.urlretrieve(url, filepath)
     logger.info("Downloaded to " + filepath)
 
-def read_file(filepath):
+def read_file(filepath="the-verdict.txt"):
     with open(filepath,'r',encoding='utf-8') as f:
         raw_text = f.read()
     logger.info("Length of text: " + str(len(raw_text)))
