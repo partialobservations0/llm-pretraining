@@ -1,21 +1,40 @@
 import logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.Logger("embeddings")
+logger = logging.getLogger("embeddings")
 logger.setLevel(logging.INFO)
 
 import torch
 from tiktoken_tokenizer import TokenizerV2, TokenDataset, create_dataloader
+from dataclasses import Field, dataclass, fields
 
-vocab_size = TokenizerV2().vocab_size
-emb_size = 2
-max_length = 4
-batch_size = 1
-stride = 1
-embedding = torch.nn.Embedding(vocab_size, emb_size)
+@dataclass
+class EmbeddingConfig:
+    vocab_size: int = 50257
+    emb_size: int = 256
+    max_length: int = 8
+    batch_size: int = 4
+    stride: int = 1
+    shuffle: bool = False
+    context_length: int = 8 
 
-dataloader = create_dataloader(batch_size=batch_size, max_length=max_length, stride=stride)
+config = EmbeddingConfig()
+
+dataloader = create_dataloader(batch_size=config.batch_size, max_length=config.max_length, stride=config.stride)
 dataiter = iter(dataloader)
 batch = next(dataiter)
-embedded = embedding(batch[0])
 
+token_embedding_layer = torch.nn.Embedding(config.vocab_size, config.emb_size)
+token_embedding = token_embedding_layer(batch[0])
+logger.info(token_embedding.shape)
 
+pos_embedding_layer = torch.nn.Embedding(config.context_length, config.emb_size)
+pos_embedding = pos_embedding_layer(torch.arange(config.context_length))
+logger.info(pos_embedding.shape)
+
+pos_embedding = pos_embedding.unsqueeze(0)
+
+#pos_embedding = pos_embedding.expand(config.batch_size, -1, -1)
+#or 
+pos_embedding = pos_embedding.repeat(config.batch_size, 1, 1)
+input_embeddings = token_embedding + pos_embedding
+logger.info(input_embeddings.shape)
