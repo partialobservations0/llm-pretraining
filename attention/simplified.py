@@ -1,5 +1,6 @@
 import torch
 import logging
+import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("simplified")
 logger.setLevel(logging.INFO)
@@ -42,15 +43,15 @@ def get_attn_scores(query, inputs, *args):
     return attn_scores
 
 
-def get_context_vector(query, inputs, attn_scores):
+def get_context_vector(query, inputs, attn_weights):
     """ context vector is weighted sum of inputs by attention scores """
 
-    if attn_scores.sum() != 1:
-        attn_scores = torch.softmax(attn_scores, dim=0)
+    if attn_weights.sum() != 1:
+        attn_weights = torch.softmax(attn_weights, dim=0)
 
     context_vector = torch.zeros_like(query)
     for i, x in enumerate(inputs):
-        context_vector += attn_scores[i] * x
+        context_vector += attn_weights[i] * x
     return context_vector
 
 def compute_all_attn_scores(inputs):
@@ -65,14 +66,28 @@ def compute_all_attn_scores_matrix(inputs):
     """ compute attention scores using matrix multiplication """
     return torch.matmul(inputs, inputs.T)
 
-attn_scores = compute_all_attn_scores(inputs)
+def compute_context_matrix(inputs, attn_weights):
+    if not torch.allclose(attn_weights.sum(dim=-1), torch.ones(attn_weights.shape[0])):
+        attn_weights = torch.softmax(attn_weights, dim=1)
+    logger.info(f"attn_weights: {attn_weights}")
+    return torch.matmul(attn_weights, inputs)
 
+
+
+query = inputs[1]
+attn_scores = compute_all_attn_scores(inputs)
 attn_scores_m = compute_all_attn_scores_matrix(inputs)
-logger.info(attn_scores_m)
+#logger.info(attn_scores_m)
 logger.info(attn_scores)
+
 assert torch.allclose(attn_scores, attn_scores_m)
-#query = inputs[1]
-#attn_score_normalized = get_attn_scores(query, inputs, 'norm')
-#logger.info(attn_score_normalized)
-#context_vector_2 = get_context_vector(query, inputs, attn_score_normalized)
-#logger.info(context_vector_2)
+#--------------------------------------------------#
+
+attn_score_normalized = get_attn_scores(query, inputs, 'softmax')
+context_vector_2 = get_context_vector(query, inputs, attn_score_normalized)
+
+context_vector = compute_context_matrix(inputs, attn_scores_m)
+logger.info(context_vector)
+logger.info(attn_score_normalized)
+logger.info(context_vector_2)
+assert torch.allclose(context_vector[1], context_vector_2)
