@@ -41,7 +41,6 @@ class SelfAttention_v1(torch.nn.Module):
         self.W_v_params = torch.nn.Parameter(v_weight, requires_grad=True)
 
         
-
     def forward_with_parameters_old(self,x):
         q = torch.matmul(x, self.W_q_params) + self.q_bias
         k = torch.matmul(x, self.W_k_params) + self.k_bias
@@ -67,6 +66,25 @@ class SelfAttention_v1(torch.nn.Module):
         context_vec = torch.matmul(attn_weights, v)
         return context_vec 
 
+    def get_attn_scores(self, x):
+        return torch.matmul(self.W_q(x), self.W_k(x).T)
+    
+
+    def mask_prev_tokens_scores(self, attn_scores):
+        context_length = attn_scores.shape[0]
+        mask = torch.tril(torch.ones(context_length, context_length))
+        attn_scores = attn_scores * mask
+        row_sum = attn_scores.sum(dim = 1, keepdim=True)
+        attn_scores = attn_scores / row_sum
+        return attn_scores
+
+    def mask_prev_tokens_efficiently(self, attn_scores):
+        context_length = attn_scores.shape[0]
+        mask = torch.triu(torch.ones(context_length, context_length), diagonal=1).bool()
+        attn_scores = attn_scores.masked_fill(mask, -1*torch.inf)
+        attn_scores = torch.softmax(attn_scores / torch.sqrt(torch.tensor(self.d_out)), dim=1)
+        return attn_scores
+
 
 torch.manual_seed(123)
 inputs = torch.tensor([
@@ -77,12 +95,17 @@ inputs = torch.tensor([
     [0.77, 0.24, 0.1],
     [0.05, 0.80, 0.55]
     ])
+
 # input size is n x d_in 
 d_in = inputs.shape[1]
 d_out = 2 
 self_attn = SelfAttention_v1(d_in, d_out)
 context = self_attn(inputs)
 context_2  = self_attn.forward_with_parameters_old(inputs)
+attn_scores = self_attn.get_attn_scores(inputs)
+causal_attn_scores = self_attn.mask_prev_tokens_efficiently(attn_scores)
+logger.info(f"causal_attn_scores: {causal_attn_scores}")
+
 logger.info(f"context: {context}")
 logger.info(f"context_2: {context_2}")
 
@@ -137,7 +160,15 @@ def rough():
     logger.info(f"attn_scores: {attn_scores}")
     logger.info(f"context: {context}")
 
-# revise 
+    # lets write a lower triangle mask for attention
+    context_length = inputs.shape[0]
+    mask = torch.tril(torch.ones(context_length, context_length))
+    attn_scores = attn_scores * mask
+    logger.info(f"masked attn_scores: {attn_scores}")
+
+rough()
+
+# revise
 # x gets multiplied with W_q, W_k, W_v giving us n x d_out matrices
 # attention scores are normalized product of queries and keys that is n x n matrix
 # context is then attn_scores times values giving n x d_out matrix
