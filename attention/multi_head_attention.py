@@ -42,7 +42,7 @@ class MultiHeadAttention(torch.nn.Module):
         values = self.W_v(x)
 
         keys = keys.view(b, num_tokens, self.num_heads, self.head_dim)
-        queries = keys.view(b, num_tokens, self.num_heads, self.head_dim)
+        queries = queries.view(b, num_tokens, self.num_heads, self.head_dim)
         values = values.view(b, num_tokens, self.num_heads, self.head_dim)
 
         keys = keys.transpose(1, 2) # swap dimension 1 with 2 resulting in shape b, num_heads, num_tokens, head_dim
@@ -60,7 +60,7 @@ class MultiHeadAttention(torch.nn.Module):
         attn_weights = torch.softmax(attn_scores / keys.shape[-1] ** 0.5, dim=-1)
         attn_weights = self.dropout(attn_weights)
 
-        context_vec = torch.matmul(attn_weights, values).transpose(1,2).view(b,num_tokens,self.d_out)
+        context_vec = self.out_proj(torch.matmul(attn_weights, values).transpose(1,2).reshape(b,num_tokens,self.d_out))
         return context_vec
 
 
