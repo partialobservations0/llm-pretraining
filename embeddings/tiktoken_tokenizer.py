@@ -3,9 +3,10 @@ from importlib.metadata import version
 
 import tiktoken
 import torch
-from Tokenizer import Tokenizer
 from torch.utils.data import DataLoader, Dataset
-from words import read_file
+
+from embeddings.Tokenizer import Tokenizer
+from embeddings.words import read_file
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tiktoken")

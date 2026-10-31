@@ -2,7 +2,8 @@ import logging
 from dataclasses import dataclass
 
 import torch
-from tiktoken_tokenizer import create_dataloader
+
+from embeddings.tiktoken_tokenizer import create_dataloader
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("embeddings")

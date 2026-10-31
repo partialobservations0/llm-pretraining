@@ -1,7 +1,10 @@
 import pytest
+
 import torch
+import tiktoken
 
 from attention.multi_head_attention import MultiHeadAttention
+from gpt2.dummy_gpt import DummyGPTModel
 
 
 def test_mha_output_shape():
@@ -109,3 +112,17 @@ def test_dropout_eval_vs_train():
         t1, t2 = mha(x), mha(x)
     assert not torch.allclose(t1, t2)
     assert not torch.allclose(t1, e1)
+
+
+def test_dummy_model():
+    tokenizer = tiktoken.get_encoding("gpt2")
+    batch = []
+    txt1 = "Enter any further detail"
+    txt2 = "to complete this novel"
+
+    batch.append(torch.tensor(tokenizer.encode(txt1)))
+    batch.append(torch.tensor(tokenizer.encode(txt2)))
+    batch = torch.stack(batch, dim=0)
+    print(batch)
+    torch.manual_seed(123)
+    model = DummyGPTModel()
