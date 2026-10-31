@@ -1,7 +1,10 @@
 import logging
+
+from words import create_vocab, read_file, tokens_from_text
+
 logger = logging.getLogger("tokenizer")
 logging.basicConfig(level=logging.INFO)
-from words import create_vocab, read_file, tokens_from_text
+
 
 class Tokenizer: 
 

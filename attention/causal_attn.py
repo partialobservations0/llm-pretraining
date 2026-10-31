@@ -1,5 +1,7 @@
 import logging
+
 import torch
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -19,7 +21,7 @@ class CausalAttention(torch.nn.Module):
         
     def forward(self, x):
 
-        b, num_tokens, d_in = x.shape
+        _b, num_tokens, _d_in = x.shape
         q = self.W_q(x)
         k = self.W_k(x)
         v = self.W_v(x)

@@ -1,4 +1,4 @@
-import torch 
+import torch
 
 from attention.multi_head_attention import MultiHeadAttention
 

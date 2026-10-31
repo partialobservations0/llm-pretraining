@@ -1,5 +1,7 @@
 import torch
+
 from attention.causal_attn import CausalAttention, inputs
+
 
 class WrapperMultiHeadAttention(torch.nn.Module):
 
@@ -11,7 +13,6 @@ class WrapperMultiHeadAttention(torch.nn.Module):
         )
 
     def forward(self, x):
-        b, num_tokens, d_in = x.shape
         return torch.cat([head(x) for head in self.heads], dim=-1)
 
 
@@ -35,7 +36,7 @@ class MultiHeadAttention(torch.nn.Module):
 
     def forward(self, x):
 
-        b, num_tokens, d_in = x.shape
+        b, num_tokens, _d_in = x.shape
         keys = self.W_k(x)
         queries = self.W_q(x)
         values = self.W_v(x)
@@ -48,14 +49,14 @@ class MultiHeadAttention(torch.nn.Module):
         values = values.transpose(1, 2)
         queries = queries.transpose(1, 2)
 
-        # torch transpose function and why this transpose ??
+        #torch transpose function and why this transpose ??
 
         attn_scores = torch.matmul(queries, keys.transpose(2,3))
-        # what would be attn_scores dimensions here? b, num_heads, num_tokens, num_tokens 
-        # also explains the earlier transpose.
+        #what would be attn_scores dimensions here? b, num_heads, num_tokens, num_tokens 
+        #also explains the earlier transpose.
         mask_bool = self.mask.bool()[:num_tokens, :num_tokens]
         attn_scores.masked_fill_(mask_bool, -torch.inf)
-        # masked_fill will write -torch.inf where it has value True (triu)  
+        #masked_fill will write -torch.inf where it has value True (triu)  
         attn_weights = torch.softmax(attn_scores / keys.shape[-1] ** 0.5, dim=-1)
         attn_weights = self.dropout(attn_weights)
 

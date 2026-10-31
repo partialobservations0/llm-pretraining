@@ -1,15 +1,18 @@
 import logging
+from importlib.metadata import version
+
+import tiktoken
+import torch
+from Tokenizer import Tokenizer
+from torch.utils.data import DataLoader, Dataset
+from words import read_file
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tiktoken")
 logger.setLevel(logging.INFO)
-from importlib.metadata import version 
-from words import read_file
-import tiktoken
-logger.info("tiktoken version: " + version("tiktoken"))
-from Tokenizer import Tokenizer
 
-import torch
-from torch.utils.data import DataLoader, Dataset
+
+logger.info("tiktoken version: " + version("tiktoken"))
 
 text = read_file()
 tokenizer = tiktoken.get_encoding("gpt2")

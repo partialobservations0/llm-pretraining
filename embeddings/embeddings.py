@@ -1,11 +1,12 @@
 import logging
+from dataclasses import dataclass
+
+import torch
+from tiktoken_tokenizer import create_dataloader
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("embeddings")
 logger.setLevel(logging.INFO)
-
-import torch
-from tiktoken_tokenizer import TokenizerV2, TokenDataset, create_dataloader
-from dataclasses import Field, dataclass, fields
 
 @dataclass
 class EmbeddingConfig:

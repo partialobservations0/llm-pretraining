@@ -1,13 +1,13 @@
-# main difference between simpliefied attention and self attention is that self attention uses 
-# queries, keys and values matrices
 import logging
+
+import torch
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-import torch 
-
-
+# main difference between simpliefied attention and self attention is that self attention uses 
+# queries, keys and values matrices
 
 class SelfAttention_v1(torch.nn.Module):
     def __init__(self, d_in, d_out): 

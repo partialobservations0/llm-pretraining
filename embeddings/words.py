@@ -1,7 +1,8 @@
-import urllib.request
 import logging
-url = "https://raw.githubusercontent.com/rasbt/LLMs-from-scratch/main/ch02/01_main-chapter-code/the-verdict.txt"
 import re
+import urllib.request
+
+url = "https://raw.githubusercontent.com/rasbt/LLMs-from-scratch/main/ch02/01_main-chapter-code/the-verdict.txt"
 
 logger = logging.getLogger("Words")
 logger.setLevel(logging.WARNING)
@@ -12,7 +13,7 @@ def download_url(url, filepath):
     logger.info("Downloaded to " + filepath)
 
 def read_file(filepath="the-verdict.txt"):
-    with open(filepath,'r',encoding='utf-8') as f:
+    with open(filepath,encoding='utf-8') as f:
         raw_text = f.read()
     logger.info("Length of text: " + str(len(raw_text)))
     return raw_text
