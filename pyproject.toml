@@ -1,0 +1,38 @@
+[project]
+name = "llm-pretraining"
+version = "0.1.0"
+description = "attention from scratch implementation"
+readme = "README.md"
+authors = [
+    { name = "y", email = "partialobservations@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "numpy>=2.5.4",
+    "tiktoken>=0.14.0",
+    "torch>=2.15.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.22,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+
+[tool.ruff]
+line-length = 100
+extend-exclude = ["notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "RUF"]
+ignore = ["E501"]
+
+[tool.pytest]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["-ra", "--strict-markers"]
+
