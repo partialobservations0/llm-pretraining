@@ -1,11 +1,11 @@
 import pytest
-
-import torch
 import tiktoken
+import torch
 
 from attention.multi_head_attention import MultiHeadAttention
-from gpt2.dummy_gpt import DummyGPTModel
 from gpt2.config import GPT_CONFIG_124M
+from gpt2.dummy_gpt import DummyGPTModel, ExampleShortcutConnection
+
 
 def test_mha_output_shape():
     torch.manual_seed(123)
@@ -129,3 +129,21 @@ def test_dummy_model():
     logits = model(batch)
     print(f"output_shape {logits.shape}")
     print(logits)
+
+
+def test_shortcut_connections():
+
+    layer_size = [3,3,3,3,3]
+    x = torch.randn(2, 3)
+    model_without_shortcut = ExampleShortcutConnection(layer_size=layer_size, use_shortcut=False)
+    out = model_without_shortcut(x)
+    #print(out)
+    model_with_shortcut = ExampleShortcutConnection(layer_size=layer_size, use_shortcut=True)
+    out = model_with_shortcut(x)
+    #print(out)
+    target = torch.tensor([[0,0,1], [0,0,1]])
+    loss_fn = torch.nn.MSELoss()
+    loss = loss_fn(out, target)
+    loss.backward()
+    for name, param in model_with_shortcut.named_parameters():
+        print(name, param.grad)

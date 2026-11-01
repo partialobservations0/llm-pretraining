@@ -24,7 +24,7 @@ class DummyGPTModel(nn.Module):
 
     def forward(self, in_idx):
 
-        batch_size, seq_length = in_idx.shape
+        _batch_size, seq_length = in_idx.shape
         #shape is property (size is function)
         tok_embeds = self.tok_embedding(in_idx) 
         #we expect tok_embeddings to pull embeddings corresponding to all idx in in_idx
@@ -57,7 +57,7 @@ class DummyLayerNorm(nn.Module):
 
         xmean = x.mean(dim=-1, keepdim=True)
         xvar = x.var(dim=-1, keepdim=True, unbiased=False) # unbiased = False only to match GPT-2 specifications 
-                                                            # it switches off Basil's correction (divide by n-1 instead of n)
+                                                            # it switches off Bessel's correction (divide by n-1 instead of n)
         norm_x = (x - xmean) / torch.sqrt(xvar + self.eps)
         return self.scale * norm_x + self.shift
 
@@ -67,5 +67,29 @@ class GELU(nn.Module):
         super().__init__()
 
     def forward(self, x):
-        return 0.5 * x * (1 + torch.tanh(torch.sqrt(torch.tensor(2/torch.pi))) * (x + 0.44715) * torch.pow(x,3))
-    
+        return 0.5 * x * (1 + torch.tanh(
+            torch.sqrt(torch.tensor(2 / torch.pi)) * (x + 0.044715 * torch.pow(x, 3))
+        ))
+
+class ExampleShortcutConnection(nn.Module):
+
+    def __init__(self,layer_size, use_shortcut):
+
+        super().__init__()
+        self.use_shortcut = use_shortcut
+        self.layers = nn.ModuleList([
+                                    nn.Sequential(nn.Linear(layer_size[0], layer_size[1]), GELU()),
+                                    nn.Sequential(nn.Linear(layer_size[1], layer_size[2]), GELU()),
+                                    nn.Sequential(nn.Linear(layer_size[2], layer_size[3]), GELU()),
+                                    nn.Sequential(nn.Linear(layer_size[3], layer_size[4]), GELU())
+                                    ])
+
+    def forward(self,x):
+
+        for layers in self.layers:
+            layer_output = layers(x)
+            if self.use_shortcut: 
+                x = x + layer_output
+            else:
+                x = layer_output
+        return x
