@@ -135,15 +135,22 @@ def test_shortcut_connections():
 
     layer_size = [3,3,3,3,3]
     x = torch.randn(2, 3)
+
+    target = torch.tensor([[0,0,1], [0,0,1]])
+    loss_fn = torch.nn.MSELoss()
     model_without_shortcut = ExampleShortcutConnection(layer_size=layer_size, use_shortcut=False)
     out = model_without_shortcut(x)
+    loss = loss_fn(out, target)
+    loss.backward()
+    for param in model_without_shortcut.parameters():
+        print(param.grad.mean(dim=-1))
     #print(out)
     model_with_shortcut = ExampleShortcutConnection(layer_size=layer_size, use_shortcut=True)
     out = model_with_shortcut(x)
-    #print(out)
-    target = torch.tensor([[0,0,1], [0,0,1]])
-    loss_fn = torch.nn.MSELoss()
     loss = loss_fn(out, target)
+    #print(out)
     loss.backward()
     for name, param in model_with_shortcut.named_parameters():
-        print(name, param.grad)
+        print(name, param.grad.mean(dim=-1))
+
+# tbd add a test for GELU

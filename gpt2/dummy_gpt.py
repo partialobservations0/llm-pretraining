@@ -71,6 +71,21 @@ class GELU(nn.Module):
             torch.sqrt(torch.tensor(2 / torch.pi)) * (x + 0.044715 * torch.pow(x, 3))
         ))
 
+
+class MyFeedForward(nn.Module):
+
+    def __init__(self, cfg):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(cfg["embed_dim"], 4 * cfg["embed_dim"]),
+            GELU(),
+            nn.Linear(4 * cfg["embed_dim"], cfg["embed_dim"])
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+
+
 class ExampleShortcutConnection(nn.Module):
 
     def __init__(self,layer_size, use_shortcut):
