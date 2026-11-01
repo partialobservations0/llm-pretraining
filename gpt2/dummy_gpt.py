@@ -17,7 +17,7 @@ class DummyGPTModel(nn.Module):
         self.pos_embedding = nn.Embedding(cfg["context_length"], cfg["embed_dim"])
         self.dropout = nn.Dropout(cfg["dropout_rate"])
         self.trf_blocks = nn.Sequential(*[DummyTransformerBlock(cfg)
-                            for _ in range(cfg["n_blocks"])
+                            for _ in range(cfg["n_heads"])
                             ])
         self.final_norm = DummyLayerNorm(cfg["embed_dim"])
         self.out_head = nn.Linear(cfg["embed_dim"], cfg["vocab_size"], bias=False)
@@ -47,8 +47,16 @@ class DummyTransformerBlock(nn.Module):
 class DummyLayerNorm(nn.Module):
 
     def __init__(self, embed_dim): 
+        # embed_dim is the dim of last dimension
         super().__init__()
+        self.eps = 1e-5
+        self.scale = torch.nn.Parameter(torch.ones(embed_dim))
+        self.shift = torch.nn.Parameter(torch.zeros(embed_dim))
 
     def forward(self, x):
-        return x
 
+        xmean = x.mean(dim=-1, keepdim=True)
+        xvar = x.var(dim=-1, keepdim=True, unbiased=False) # unbiased = False only to match GPT-2 specifications 
+                                                            # it switches off Basil's correction (divide by n-1 instead of n)
+        norm_x = (x - xmean) / torch.sqrt(xvar + self.eps)
+        return self.scale * norm_x + self.shift

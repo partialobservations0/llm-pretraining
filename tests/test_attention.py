@@ -5,7 +5,7 @@ import tiktoken
 
 from attention.multi_head_attention import MultiHeadAttention
 from gpt2.dummy_gpt import DummyGPTModel
-
+from gpt2.config import GPT_CONFIG_124M
 
 def test_mha_output_shape():
     torch.manual_seed(123)
@@ -125,4 +125,7 @@ def test_dummy_model():
     batch = torch.stack(batch, dim=0)
     print(batch)
     torch.manual_seed(123)
-    model = DummyGPTModel()
+    model = DummyGPTModel(GPT_CONFIG_124M)
+    logits = model(batch)
+    print(f"output_shape {logits.shape}")
+    print(logits)
