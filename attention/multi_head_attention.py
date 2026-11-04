@@ -64,7 +64,6 @@ class MultiHeadAttention(torch.nn.Module):
         return context_vec
 
 
-
 if __name__ == '__main__':
 
     batch = torch.stack([inputs, inputs], dim=0)
