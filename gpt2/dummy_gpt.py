@@ -44,7 +44,7 @@ class DummyTransformerBlock(nn.Module):
     def forward(self, x):
         return x
 
-class DummyLayerNorm(nn.Module):
+class LayerNorm(nn.Module):
 
     def __init__(self, embed_dim): 
         # embed_dim is the dim of last dimension
@@ -60,6 +60,8 @@ class DummyLayerNorm(nn.Module):
                                                             # it switches off Bessel's correction (divide by n-1 instead of n)
         norm_x = (x - xmean) / torch.sqrt(xvar + self.eps)
         return self.scale * norm_x + self.shift
+
+DummyLayerNorm = LayerNorm
 
 class GELU(nn.Module):
 

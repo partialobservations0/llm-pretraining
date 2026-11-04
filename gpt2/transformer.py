@@ -48,3 +48,8 @@ output = block(x)
 
 print(f"input shape {x.shape}")
 print(f"output shape {output.shape}")
+
+attn_params_count = sum([p.numel() for p in block.attn.parameters()])
+print(f"attn parameters count: {attn_params_count}")
+ffn_params_count = sum(p.numel() for p in block.ff.parameters())
+print(f"ff params count: {ffn_params_count}")
