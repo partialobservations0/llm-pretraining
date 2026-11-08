@@ -1,10 +1,9 @@
+import tiktoken
 import torch
 
-import tiktoken
-
-from gpt2.transformer import TransformerBlock
-from gpt2.dummy_gpt import LayerNorm
 from gpt2.config import GPT_CONFIG_124M
+from gpt2.dummy_gpt import LayerNorm
+from gpt2.transformer import TransformerBlock
 
 
 class GPTModel(torch.nn.Module):
@@ -21,7 +20,7 @@ class GPTModel(torch.nn.Module):
 
     def forward(self, in_idx):
 
-        batch_size, seq_len = in_idx.shape
+        _batch_size, seq_len = in_idx.shape
         tok_embeds = self.tok_embedding(in_idx)
         pos_embeds = self.pos_embedding(torch.arange(seq_len))
         x = tok_embeds + pos_embeds
