@@ -15,7 +15,7 @@ logger.setLevel(logging.INFO)
 
 logger.info("tiktoken version: " + version("tiktoken"))
 
-text = read_file()
+#text = read_file()
 tokenizer = tiktoken.get_encoding("gpt2")
 
 def test_tiktoken(tokenizer, text):
@@ -31,6 +31,13 @@ def create_dataloader(batch_size=4, max_length=256, stride=128,
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, 
                           drop_last=drop_last, num_workers=num_workers)
     return dataloader    
+
+def create_dataloader_v2(tokenizer, text_data, batch_size=4, max_length=256, stride=128,
+                         shuffle=True, drop_last=True, num_workers=0):
+    dataset = TokenDataset(tokenizer, text_data, max_length, stride)
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=shuffle,
+                            drop_last=drop_last, num_workers=num_workers)
+    return dataloader
 
 class TokenizerV2:
     def __init__(self, **kwargs):

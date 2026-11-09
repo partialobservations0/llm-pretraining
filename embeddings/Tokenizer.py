@@ -1,6 +1,6 @@
 import logging
 
-from words import create_vocab, read_file, tokens_from_text
+from embeddings.words import create_vocab, read_file, tokens_from_text
 
 logger = logging.getLogger("tokenizer")
 logging.basicConfig(level=logging.INFO)
