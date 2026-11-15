@@ -11,8 +11,8 @@ class GPTModel(torch.nn.Module):
     def __init__(self,cfg):
 
         super().__init__()
-        self.tok_embedding = torch.nn.Embedding(cfg["vocab_size"], cfg["embed_dim"])
-        self.pos_embedding = torch.nn.Embedding(cfg["context_length"], cfg["embed_dim"])   
+        self.tok_emb = torch.nn.Embedding(cfg["vocab_size"], cfg["embed_dim"])
+        self.pos_emb = torch.nn.Embedding(cfg["context_length"], cfg["embed_dim"])   
         self.drop_emb = torch.nn.Dropout(cfg["dropout_rate"])
         self.trf_blocks = torch.nn.Sequential(*[TransformerBlock(cfg) for _ in range(cfg["n_layers"])])
         self.final_norm = LayerNorm(cfg["embed_dim"])
@@ -21,8 +21,8 @@ class GPTModel(torch.nn.Module):
     def forward(self, in_idx):
 
         _batch_size, seq_len = in_idx.shape
-        tok_embeds = self.tok_embedding(in_idx)
-        pos_embeds = self.pos_embedding(torch.arange(seq_len))
+        tok_embeds = self.tok_emb(in_idx)
+        pos_embeds = self.pos_emb(torch.arange(seq_len))
         x = tok_embeds + pos_embeds
         x = self.drop_emb(x)
         x = self.trf_blocks(x)
