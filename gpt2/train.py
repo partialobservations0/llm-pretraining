@@ -22,6 +22,34 @@ def generate_text(model, idx, max_token_length, context_size):
         idx = torch.cat([idx, tokens], dim=1)
     return idx
 
+def generate_text_with_topk(model, idx, max_token_length, context_size, k=10):
+
+    for _ in range(max_token_length):
+        context = idx[:,-context_size:]
+        with torch.no_grad():
+            logits = model(context)
+        logits = logits[:,-1,:]
+        # logits is batch x seq_length x vocab
+        top_logits, _top_pos = torch.topk(input=logits, k=k, dim=-1,)
+        new_logits = torch.where(logits >= top_logits[..., -1:], logits, other=-1*torch.inf)
+        probs = torch.softmax(new_logits, dim=-1)
+        tokens = torch.multinomial(probs,num_samples=1)
+        idx = torch.cat([idx, tokens], dim=1)
+    return idx
+
+def generate_text_temperature_scaled(model, idx, max_token_length, context_size, temp=1.0):
+
+    for _ in range(max_token_length):
+        context = idx[:, - context_size:]
+        with torch.no_grad():
+            logits = model(context)
+        logits = logits / temp
+        probs = torch.softmax(logits[:, -1, :], dim=-1)
+        tokens = torch.multinomial(input=probs,num_samples=1).item()
+        idx = torch.cat([idx, tokens], dim=1)
+        # item returns the value of tensor as a python number
+    return idx
+
 def generate_text_for_batched_input(model, encsequences, max_token_length, context_size):
     """
     Main point is that for batched input of different length we will have to use
@@ -71,7 +99,7 @@ def calc_loss_batch(model, input_batch, target_batch, device='cpu'):
     return loss
 
 def train_simple_model(model, train_loader, val_loader,tokenizer, optimizer, device='cpu', 
-                    num_epochs=5000, eval_freq=10, eval_iter=5, start_context="Hello I am Bilbo"):
+                    num_epochs=20, eval_freq=10, eval_iter=5, start_context="Hello I am Bilbo"):
     train_losses, val_losses, track_tokens_seen = [], [], []
     token_seen, global_step = 0, -1
 
@@ -93,6 +121,8 @@ def train_simple_model(model, train_loader, val_loader,tokenizer, optimizer, dev
                     f"Val loss: {val_loss:.3f}"
                     )
                 generate_and_print_sample(model, tokenizer, device, start_context)
+                save_model(model,optimizer)
+
     return train_losses, val_losses, track_tokens_seen
 
 def calc_loss_loader(dataloader, model, device, num_batches = None):
@@ -127,7 +157,7 @@ def generate_and_print_sample(model, tokenizer, device, start_context):
     context_size = model.pos_embedding.weight.shape[0]
     encoded = text_to_token_ids(start_context, tokenizer).to(device)
     with torch.no_grad():
-        token_ids = generate_text(model = model, idx = encoded, max_token_length = 50, context_size = context_size)
+        token_ids = generate_text_with_topk(model = model, idx = encoded, max_token_length = 50, context_size = context_size)
     decoded_text = token_ids_to_text(token_ids,tokenizer)
     print(decoded_text.replace("\n", " "))
     model.train()
@@ -138,6 +168,21 @@ def text_to_token_ids(text, tokenizer):
 def token_ids_to_text(token_ids, tokenizer):
     return tokenizer.decode(token_ids.squeeze(0).tolist())
 
+def save_model(model,optimizer):
+    model.eval()
+    torch.save({
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict()}, "model_and_optimizer.pth")
+    
+def load_model():
+    checkpoint = torch.load("model_and_optimizer.pth")
+    model = GPTModel(GPT_CONFIG_124M)
+    model.load_state_dict(checkpoint["model"])
+    optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4, weight_decay=0.1)
+    optimizer = optimizer.load_state_dict(checkpoint["optimizer"])
+    model.train()
+    print("model loaded")
+
 if __name__ == '__main__':
     train_text, val_text = get_train_test_data()
     train_loader, val_loader = get_data_loaders(train_text, val_text)
@@ -145,3 +190,4 @@ if __name__ == '__main__':
     tokenizer = tiktoken.get_encoding("gpt2")
     optimizer = torch.optim.Adam(model.parameters())
     train_losses, val_losses, track_tokens_seen = train_simple_model(model, train_loader, val_loader, tokenizer, optimizer)
+
