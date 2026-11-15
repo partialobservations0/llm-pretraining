@@ -65,17 +65,18 @@ class Utils:
 
 
 
-torch.manual_seed(123)
-model = GPTModel(GPT_CONFIG_124M)
-batch = torch.tensor([[6109, 3626, 6100, 345],
-                       [6109, 1110, 6622, 257]])
-out = model(batch)
-print(out.shape)
+if __name__ == "__main__":
+    torch.manual_seed(123)
+    model = GPTModel(GPT_CONFIG_124M)
+    batch = torch.tensor([[6109, 3626, 6100, 345],
+                          [6109, 1110, 6622, 257]])
+    out = model(batch)
+    print(out.shape)
 
-total_params = sum([p.numel() for p in model.parameters()])
-print(f"total parameters {total_params}")
-total_params_in_trf = sum(p.numel() for p in model.trf_blocks.parameters())
-print(f"total parameters {total_params_in_trf}")
+    total_params = sum([p.numel() for p in model.parameters()])
+    print(f"total parameters {total_params}")
+    total_params_in_trf = sum(p.numel() for p in model.trf_blocks.parameters())
+    print(f"total parameters {total_params_in_trf}")
 
-ut = Utils()
-ut.test_generate_text()
+    ut = Utils()
+    ut.test_generate_text()

@@ -2,9 +2,7 @@ import logging
 
 import torch
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 # main difference between simpliefied attention and self attention is that self attention uses 
 # queries, keys and values matrices
@@ -86,7 +84,6 @@ class SelfAttention_v1(torch.nn.Module):
         return attn_scores
 
 
-torch.manual_seed(123)
 inputs = torch.tensor([
     [0.41, 0.2, 0.89],
     [0.55, 0.83, 0.66], 
@@ -95,19 +92,6 @@ inputs = torch.tensor([
     [0.77, 0.24, 0.1],
     [0.05, 0.80, 0.55]
     ])
-
-# input size is n x d_in 
-d_in = inputs.shape[1]
-d_out = 2 
-self_attn = SelfAttention_v1(d_in, d_out)
-context = self_attn(inputs)
-context_2  = self_attn.forward_with_parameters_old(inputs)
-attn_scores = self_attn.get_attn_scores(inputs)
-causal_attn_scores = self_attn.mask_prev_tokens_efficiently(attn_scores)
-logger.info(f"causal_attn_scores: {causal_attn_scores}")
-
-logger.info(f"context: {context}")
-logger.info(f"context_2: {context_2}")
 
 def rough():
 
@@ -166,7 +150,20 @@ def rough():
     attn_scores = attn_scores * mask
     logger.info(f"masked attn_scores: {attn_scores}")
 
-rough()
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    torch.manual_seed(123)
+    d_in = inputs.shape[1]
+    d_out = 2
+    self_attn = SelfAttention_v1(d_in, d_out)
+    context = self_attn(inputs)
+    context_2 = self_attn.forward_with_parameters_old(inputs)
+    attn_scores = self_attn.get_attn_scores(inputs)
+    causal_attn_scores = self_attn.mask_prev_tokens_efficiently(attn_scores)
+    logger.info(f"causal_attn_scores: {causal_attn_scores}")
+    logger.info(f"context: {context}")
+    logger.info(f"context_2: {context_2}")
+    rough()
 
 # revise
 # x gets multiplied with W_q, W_k, W_v giving us n x d_out matrices

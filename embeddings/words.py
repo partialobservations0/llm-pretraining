@@ -5,8 +5,6 @@ import urllib.request
 url = "https://raw.githubusercontent.com/rasbt/LLMs-from-scratch/main/ch02/01_main-chapter-code/the-verdict.txt"
 
 logger = logging.getLogger("Words")
-logger.setLevel(logging.WARNING)
-logging.basicConfig(level=logging.WARNING)
 
 def download_url(url, filepath):
     urllib.request.urlretrieve(url, filepath)
@@ -33,9 +31,7 @@ def create_vocab(text):
     return vocab
 
 
-
 #if __name__ == "__main__":
 #    download_url(url, "the-verdict.txt")
 #    text = read_file("the-verdict.txt")
 #    create_vocab(text)
-

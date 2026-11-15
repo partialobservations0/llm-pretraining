@@ -3,7 +3,6 @@ import logging
 from embeddings.words import create_vocab, read_file, tokens_from_text
 
 logger = logging.getLogger("tokenizer")
-logging.basicConfig(level=logging.INFO)
 
 
 class Tokenizer: 
@@ -41,6 +40,7 @@ class Tokenizer:
         return "".join([self.inv_vocab[token] for token in encoded_tokens])
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     t = Tokenizer(**{"filepath": "the-verdict.txt"})
     logger.info(t.encode("hello"))
     logger.info(t.decode(t.encode("hello")))

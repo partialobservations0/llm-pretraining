@@ -2,9 +2,7 @@ import logging
 
 import torch
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
 
 class CausalAttention(torch.nn.Module):
     def __init__(self, d_in, d_out, context_length):
@@ -46,6 +44,7 @@ inputs = torch.tensor([
 
 if __name__ == '__main__':
 
+    logging.basicConfig(level=logging.INFO)
     batch = torch.stack((inputs, inputs), dim=0)
     logger.info(f"batch size {batch.shape}")
 

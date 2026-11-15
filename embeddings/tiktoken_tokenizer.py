@@ -8,12 +8,7 @@ from torch.utils.data import DataLoader, Dataset
 from embeddings.Tokenizer import Tokenizer
 from embeddings.words import read_file
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("tiktoken")
-logger.setLevel(logging.INFO)
-
-
-logger.info("tiktoken version: " + version("tiktoken"))
 
 #text = read_file()
 tokenizer = tiktoken.get_encoding("gpt2")
@@ -88,6 +83,8 @@ class TokenDataset(Dataset):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    logger.info("tiktoken version: " + version("tiktoken"))
     tokenizer = Tokenizer(filepath='the-verdict.txt')
     t = TokenizerV2(tokenizer=tokenizer)
     t = TokenizerV2()

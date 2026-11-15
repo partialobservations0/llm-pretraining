@@ -2,10 +2,7 @@ import logging
 
 import torch
 
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("simplified")
-logger.setLevel(logging.INFO)
-logger.info("logger ready")
 
 inputs = torch.tensor([
     [0.41, 0.2, 0.89],
@@ -75,20 +72,21 @@ def compute_context_matrix(inputs, attn_weights):
 
 
 
-query = inputs[1]
-attn_scores = compute_all_attn_scores(inputs)
-attn_scores_m = compute_all_attn_scores_matrix(inputs)
-#logger.info(attn_scores_m)
-logger.info(attn_scores)
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    logger.info("logger ready")
+    query = inputs[1]
+    attn_scores = compute_all_attn_scores(inputs)
+    attn_scores_m = compute_all_attn_scores_matrix(inputs)
+    logger.info(attn_scores)
 
-assert torch.allclose(attn_scores, attn_scores_m)
-#--------------------------------------------------#
+    assert torch.allclose(attn_scores, attn_scores_m)
 
-attn_score_normalized = get_attn_scores(query, inputs, 'softmax')
-context_vector_2 = get_context_vector(query, inputs, attn_score_normalized)
+    attn_score_normalized = get_attn_scores(query, inputs, 'softmax')
+    context_vector_2 = get_context_vector(query, inputs, attn_score_normalized)
 
-context_vector = compute_context_matrix(inputs, attn_scores_m)
-logger.info(context_vector)
-logger.info(attn_score_normalized)
-logger.info(context_vector_2)
-assert torch.allclose(context_vector[1], context_vector_2)
+    context_vector = compute_context_matrix(inputs, attn_scores_m)
+    logger.info(context_vector)
+    logger.info(attn_score_normalized)
+    logger.info(context_vector_2)
+    assert torch.allclose(context_vector[1], context_vector_2)

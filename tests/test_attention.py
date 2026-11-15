@@ -5,6 +5,8 @@ import torch
 from attention.multi_head_attention import MultiHeadAttention
 from gpt2.config import GPT_CONFIG_124M
 from gpt2.dummy_gpt import DummyGPTModel, ExampleShortcutConnection
+from gpt2.GPT2 import GPTModel
+from gpt2.train import generate_text, generate_text_for_batched_input
 
 
 def test_mha_output_shape():
@@ -152,5 +154,20 @@ def test_shortcut_connections():
     loss.backward()
     for name, param in model_with_shortcut.named_parameters():
         print(name, param.grad.mean(dim=-1))
+
+def test_generate_text():
+    model = GPTModel(GPT_CONFIG_124M)
+    tokenizer = tiktoken.get_encoding('gpt2')
+    text = "Explain quantum computing to a layman:"
+    idx = torch.tensor(tokenizer.encode(text)).unsqueeze(0)
+    generate_text(model, idx, 4, 3)
+
+def test_generate_text_for_batched_input():
+    model = GPTModel(GPT_CONFIG_124M)
+    tokenizer = tiktoken.get_encoding('gpt2')
+    text = [["Explain quantum computing to a layman:"], ["Explain blockchain to a layman:"]]
+    encseq = [torch.tensor(tokenizer.encode(item[0])) for item in text]
+    generate_text_for_batched_input(model, encseq, 4, 3 )
+        
 
 # tbd add a test for GELU

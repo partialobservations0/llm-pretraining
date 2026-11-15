@@ -1,10 +1,6 @@
-import logging
-
 import torch
 import torch.nn as nn
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 class DummyGPTModel(nn.Module):
 
