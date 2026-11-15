@@ -39,6 +39,9 @@ def generate_text_with_topk(model, idx, max_token_length, context_size, k=10):
 
 def generate_text_temperature_scaled(model, idx, max_token_length, context_size, temp=1.0):
 
+    if temp < 0: 
+        raise ValueError(f"Temperature must be above 0, got {temp}")
+
     for _ in range(max_token_length):
         context = idx[:, - context_size:]
         with torch.no_grad():

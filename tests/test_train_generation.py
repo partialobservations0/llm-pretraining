@@ -130,11 +130,18 @@ def test_generation_with_temperature():
     #probs = torch.softmax(logits[:,-1,:],dim=-1)
 
     temp = 5.0
+    if temp > 0:
+        temp_logits = logits / temp
+    else:
+        temp_logits = logits
     temp_logits = logits / temp
     temp50_probs = torch.softmax(temp_logits[:,-1,:],dim=-1)
 
     temp = 0.5
-    temp_logits = logits / temp
+    if temp > 0:
+        temp_logits = logits / temp
+    else:
+        temp_logits = logits
     temp05_probs = torch.softmax(temp_logits[:,-1,:], dim=-1)
     return temp05_probs, temp50_probs
 
