@@ -4,3 +4,6 @@ __pycache__/
 .venv.nosync/
 *.pth
 notebooks/gpt2/*
+spam_dataset/*
+*.csv
+sms_spam*
