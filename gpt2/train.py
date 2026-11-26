@@ -157,7 +157,7 @@ def evaluate_model(model, train_loader, val_loader, device, eval_iter):
 def generate_and_print_sample(model, tokenizer, device, start_context):
 
     model.eval()
-    context_size = model.pos_embedding.weight.shape[0]
+    context_size = model.pos_emb.weight.shape[0]
     encoded = text_to_token_ids(start_context, tokenizer).to(device)
     with torch.no_grad():
         token_ids = generate_text_with_topk(model = model, idx = encoded, max_token_length = 50, context_size = context_size)
@@ -193,4 +193,3 @@ if __name__ == '__main__':
     tokenizer = tiktoken.get_encoding("gpt2")
     optimizer = torch.optim.Adam(model.parameters())
     train_losses, val_losses, track_tokens_seen = train_simple_model(model, train_loader, val_loader, tokenizer, optimizer)
-

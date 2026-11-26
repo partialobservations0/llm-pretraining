@@ -23,6 +23,7 @@ class SpamDataset(Dataset):
     def __getitem__(self, index):
         encoded = self.encoded_texts[index]
         label = self.data.iloc[index]["Label"]
+        label = {"ham": 0, "spam": 1}[label]
         return torch.tensor(encoded, dtype=torch.long), torch.tensor(label, dtype=torch.long)
 
     def __len__(self):
@@ -35,5 +36,6 @@ class SpamDataset(Dataset):
                 max_length = len(text)
         return max_length
 
-train_dataset = SpamDataset(csv_file='./notebooks/train.csv', tokenizer = tiktoken.get_encoding('gpt2'))
-print(len(train_dataset))
+if __name__ == "__main__":
+    train_dataset = SpamDataset(csv_file='./notebooks/train.csv', tokenizer = tiktoken.get_encoding('gpt2'))
+    print(len(train_dataset))

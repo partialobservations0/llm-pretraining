@@ -15,7 +15,7 @@ from gpt2.train import (
 class NextTokenModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.pos_embedding = torch.nn.Embedding(3, 1)
+        self.pos_emb = torch.nn.Embedding(3, 1)
 
     def forward(self, token_ids):
         logits = torch.zeros(*token_ids.shape, 50257, device=token_ids.device)

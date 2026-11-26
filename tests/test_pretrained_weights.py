@@ -1,9 +1,68 @@
+import json
+import sys
+from types import SimpleNamespace
+
 import numpy as np
 import pytest
 import torch
-from notebooks.weights import load_weights_into_gpt
 
+from gpt2 import weights
 from gpt2.GPT2 import GPTModel
+from gpt2.weights import load_pretrained_gpt2, load_weights_into_gpt
+
+
+@pytest.mark.parametrize("has_checkpoint", [True, False])
+def test_load_pretrained_gpt2_uses_checkpoint_or_downloader(tmp_path, monkeypatch, has_checkpoint):
+    checkpoint_dir = tmp_path / "124M"
+    checkpoint_dir.mkdir()
+    (checkpoint_dir / "hparams.json").write_text(json.dumps({"n_layer": 12}))
+    checkpoint = str(checkpoint_dir / "model.ckpt")
+    params = object()
+    calls = []
+
+    def latest_checkpoint(path):
+        assert path == str(checkpoint_dir)
+        return checkpoint if has_checkpoint else None
+
+    def load_checkpoint(path, settings):
+        assert path == checkpoint
+        assert settings == {"n_layer": 12}
+        calls.append("local")
+        return params
+
+    def download(model_size, models_dir):
+        assert model_size == "124M"
+        assert models_dir == str(tmp_path)
+        calls.append("download")
+        return {"n_layer": 12}, params
+
+    monkeypatch.setitem(
+        sys.modules, "tensorflow", SimpleNamespace(train=SimpleNamespace(latest_checkpoint=latest_checkpoint))
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "notebooks.gpt_download",
+        SimpleNamespace(
+            download_and_load_gpt2=download,
+            load_gpt2_params_from_tf_ckpt=load_checkpoint,
+        ),
+    )
+    model = torch.nn.Linear(1, 1)
+
+    def make_model(config):
+        assert config["qkv_bias"] is True
+        assert config["context_length"] == 1024
+        return model
+
+    def load_weights(loaded_model, loaded_params):
+        assert loaded_model is model
+        assert loaded_params is params
+
+    monkeypatch.setattr(weights, "GPTModel", make_model)
+    monkeypatch.setattr(weights, "load_weights_into_gpt", load_weights)
+    assert load_pretrained_gpt2(tmp_path) is model
+    assert not model.training
+    assert calls == ["local" if has_checkpoint else "download"]
 
 
 def test_loads_checkpoint_parameters_and_runs_model():

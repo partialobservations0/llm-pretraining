@@ -1,6 +1,6 @@
 """Load GPT-2 weights and generate a sample.
 
-Run from the repository root with ``uv run python -m notebooks.weights``.
+Run from the repository root with ``uv run python -m gpt2.weights``.
 """
 
 import json
@@ -63,12 +63,20 @@ def load_weights_into_gpt(gpt, params):
     gpt.out_head.weight = assign(gpt.out_head.weight, params["wte"])
 
 
-def main():
+def load_pretrained_gpt2(models_dir=None):
+    """Load the 124M GPT-2 checkpoint into an evaluation-ready GPTModel.
+
+    Checkpoints are stored in ``models_dir/124M``; the default is
+    ``notebooks/gpt2`` in the repository. Missing checkpoints are downloaded.
+    """
     import tensorflow as tf
 
     from notebooks.gpt_download import download_and_load_gpt2, load_gpt2_params_from_tf_ckpt
 
-    models_dir = Path(__file__).resolve().parent / "gpt2"
+    if models_dir is None:
+        models_dir = Path(__file__).resolve().parent.parent / "notebooks" / "gpt2"
+    else:
+        models_dir = Path(models_dir)
     model_dir = models_dir / "124M"
     checkpoint_path = tf.train.latest_checkpoint(str(model_dir))
     if checkpoint_path is None:
@@ -78,16 +86,16 @@ def main():
             settings = json.load(file)
         params = load_gpt2_params_from_tf_ckpt(checkpoint_path, settings)
 
-    print("Settings:", settings)
-    print("Parameter dictionary keys:", params.keys())
-    print(params["wte"])
-    print("Token embedding weight tensor dimensions:", params["wte"].shape)
-
     config = GPT_CONFIG_124M.copy()
     config.update(MODEL_CONFIGS["gpt2-small (124M)"])
     config.update({"context_length": 1024, "qkv_bias": True})
     model = GPTModel(config).eval()
     load_weights_into_gpt(model, params)
+    return model
+
+
+def main():
+    model = load_pretrained_gpt2()
     device = torch.device("cpu")
     model.to(device)
 
@@ -97,7 +105,7 @@ def main():
         model=model,
         idx=text_to_token_ids("Hello I am Bilbo", tokenizer).to(device),
         max_token_length=25,
-        context_size=config["context_length"],
+        context_size=GPT_CONFIG_124M["context_length"],
         k=50,
     )
     print("Output text:\n", token_ids_to_text(token_ids, tokenizer))
